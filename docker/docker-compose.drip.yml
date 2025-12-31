@@ -1,0 +1,142 @@
+version: "3.7"
+
+services:
+  # DRIP Full Node
+  dripd:
+    image: drip-node:latest
+    build:
+      context: ../../DRIP
+      dockerfile: Dockerfile
+    container_name: dripd
+    restart: unless-stopped
+    stop_grace_period: 15m
+    command: >
+      dripd -drip
+      -txindex=1
+      -server=1
+      -rpcuser=drip
+      -rpcpassword=drip
+      -rpcallowip=0.0.0.0/0
+      -rpcbind=0.0.0.0
+      -zmqpubrawblock=tcp://0.0.0.0:28332
+      -zmqpubrawtx=tcp://0.0.0.0:28333
+    volumes:
+      - drip_data:/home/drip/.drip
+    ports:
+      - "58333:58333"  # P2P
+      - "58332:58332"  # RPC
+    networks:
+      - drip-network
+
+  # Electrs - Electrum Server for address indexing
+  electrs:
+    image: getumbrel/electrs:v0.10.5
+    container_name: electrs
+    restart: unless-stopped
+    depends_on:
+      - dripd
+    environment:
+      ELECTRS_NETWORK: mainnet
+      ELECTRS_DAEMON_RPC_ADDR: dripd:58332
+      ELECTRS_DAEMON_P2P_ADDR: dripd:58333
+      ELECTRS_ELECTRUM_RPC_ADDR: 0.0.0.0:50001
+      ELECTRS_LOG_FILTERS: INFO
+      ELECTRS_SERVER_BANNER: "DRIP Electrum Server"
+    volumes:
+      - electrs_data:/data
+    ports:
+      - "50001:50001"
+    networks:
+      - drip-network
+
+  # MariaDB for mempool data
+  mariadb:
+    image: mariadb:10.11
+    container_name: drip-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: drip_mempool
+      MYSQL_USER: mempool
+      MYSQL_PASSWORD: mempool
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - drip-network
+
+  # Mempool Backend
+  mempool-backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/backend/Dockerfile
+    container_name: drip-mempool-backend
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+      - electrs
+    environment:
+      MEMPOOL_BACKEND: electrum
+      MEMPOOL_NETWORK: mainnet
+      CORE_RPC_HOST: dripd
+      CORE_RPC_PORT: 58332
+      CORE_RPC_USERNAME: drip
+      CORE_RPC_PASSWORD: drip
+      ELECTRUM_HOST: electrs
+      ELECTRUM_PORT: 50001
+      ELECTRUM_TLS_ENABLED: "false"
+      DATABASE_ENABLED: "true"
+      DATABASE_HOST: mariadb
+      DATABASE_DATABASE: drip_mempool
+      DATABASE_USERNAME: mempool
+      DATABASE_PASSWORD: mempool
+      STATISTICS_ENABLED: "true"
+    volumes:
+      - mempool_cache:/backend/cache
+    networks:
+      - drip-network
+
+  # Mempool Frontend
+  mempool-frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../docker/frontend/Dockerfile
+      args:
+        FRONTEND_HTTP_PORT: 8080
+    container_name: drip-mempool-frontend
+    restart: unless-stopped
+    depends_on:
+      - mempool-backend
+    environment:
+      FRONTEND_HTTP_PORT: 8080
+      BACKEND_MAINNET_HTTP_HOST: mempool-backend
+    ports:
+      - "8080:8080"
+    networks:
+      - drip-network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: drip-nginx
+    restart: unless-stopped
+    depends_on:
+      - mempool-frontend
+      - mempool-backend
+    volumes:
+      - ./nginx/nginx-drip.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - drip-network
+
+volumes:
+  drip_data:
+  electrs_data:
+  mariadb_data:
+  mempool_cache:
+
+networks:
+  drip-network:
+    driver: bridge
+

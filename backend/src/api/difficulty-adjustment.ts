@@ -88,9 +88,10 @@ export function calcDifficultyAdjustment(
   network: string,
   latestBlockTimestamp: number,
 ): DifficultyAdjustment {
-  const EPOCH_BLOCK_LENGTH = 2016; // Bitcoin mainnet
-  const BLOCK_SECONDS_TARGET = 600; // Bitcoin mainnet
-  const TESTNET_MAX_BLOCK_SECONDS = 1200; // Bitcoin testnet
+  // DRIP: 1008 blocks (3.5 days at 5-min blocks) after fork at block 35000
+  const EPOCH_BLOCK_LENGTH = 1008;
+  const BLOCK_SECONDS_TARGET = 300; // DRIP uses 5-minute blocks
+  const TESTNET_MAX_BLOCK_SECONDS = 600; // Not used for DRIP
 
   const diffSeconds = Math.max(0, nowSeconds - DATime);
   const blocksInEpoch = (blockHeight >= 0) ? blockHeight % EPOCH_BLOCK_LENGTH : 0;

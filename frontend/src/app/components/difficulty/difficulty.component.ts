@@ -33,7 +33,9 @@ interface DiffShape {
   expected: boolean;
 }
 
-const EPOCH_BLOCK_LENGTH = 2016; // Bitcoin mainnet
+// DRIP: 4032 blocks before fork at 35000, then 1008 blocks after
+// Using 1008 as the active period (3.5 days at 5-min blocks)
+const EPOCH_BLOCK_LENGTH = 1008;
 
 @Component({
   selector: 'app-difficulty',
@@ -104,7 +106,8 @@ export class DifficultyComponent implements OnInit {
         }
 
         const blocksUntilHalving = 210000 - (maxHeight % 210000);
-        const timeUntilHalving = new Date().getTime() + (blocksUntilHalving * 600000);
+        // DRIP uses 5-minute blocks (300000 ms)
+        const timeUntilHalving = new Date().getTime() + (blocksUntilHalving * 300000);
         const newEpochStart = Math.floor(this.stateService.latestBlockHeight / EPOCH_BLOCK_LENGTH) * EPOCH_BLOCK_LENGTH;
         const newExpectedHeight = Math.floor(newEpochStart + da.expectedBlocks);
         this.now = new Date().getTime();

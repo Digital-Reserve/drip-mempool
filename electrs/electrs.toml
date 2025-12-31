@@ -1,0 +1,41 @@
+# DRIP Electrs Configuration
+# Electrum server for DRIP blockchain
+
+# Network type (mainnet for DRIP)
+network = "mainnet"
+
+# DRIP node RPC connection
+daemon_rpc_addr = "127.0.0.1:58332"
+daemon_p2p_addr = "127.0.0.1:58333"
+
+# Electrum server settings
+electrum_rpc_addr = "0.0.0.0:50001"
+
+# Database location
+db_dir = "/data/electrs"
+
+# Logging
+log_filters = "INFO"
+
+# Server banner
+server_banner = "DRIP Electrum Server - Powered by Electrs"
+
+# Skip merkle proof verification (faster initial sync)
+skip_block_download_wait = false
+
+# Index batch size
+index_batch_size = 100
+
+# Enable JSON-RPC
+jsonrpc_import = false
+
+# Monitoring
+monitoring_addr = "127.0.0.1:4224"
+
+# Cookie authentication (set to empty if using rpcuser/rpcpassword)
+cookie_file = ""
+
+# RPC credentials (use environment variables in production)
+# daemon_rpc_user = "drip"
+# daemon_rpc_pass = "drip"
+
