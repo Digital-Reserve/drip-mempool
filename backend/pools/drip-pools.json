@@ -1,7 +1,14 @@
 {
   "pplns": [
     {
-      "id": 1,
+      "id": 200,
+      "name": "altcoinspool",
+      "link": "https://altcoinspool.cc",
+      "tags": ["/DRIP/", "/drip/"],
+      "addresses": ["DCbjW9osX9PiohQgnt71rue6fw1MWEsrFw"]
+    },
+    {
+      "id": 201,
       "name": "SuperAxePool",
       "link": "https://www.superaxepool.com",
       "tags": ["/SuperAxePool/"],
