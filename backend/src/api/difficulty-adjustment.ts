@@ -94,7 +94,8 @@ export function calcDifficultyAdjustment(
   const TESTNET_MAX_BLOCK_SECONDS = 600; // Not used for DRIP
 
   const diffSeconds = Math.max(0, nowSeconds - DATime);
-  const blocksInEpoch = (blockHeight >= 0) ? blockHeight % EPOCH_BLOCK_LENGTH : 0;
+  const FORK_HEIGHT = 35000;
+  const blocksInEpoch = (blockHeight >= FORK_HEIGHT) ? (blockHeight - FORK_HEIGHT) % EPOCH_BLOCK_LENGTH : 0;
   const progressPercent = (blockHeight >= 0) ? blocksInEpoch / EPOCH_BLOCK_LENGTH * 100 : 100;
   const remainingBlocks = EPOCH_BLOCK_LENGTH - blocksInEpoch;
   const nextRetargetHeight = (blockHeight >= 0) ? blockHeight + remainingBlocks : 0;
