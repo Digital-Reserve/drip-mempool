@@ -19,8 +19,8 @@ class FeeApi {
 
   minimumIncrement = isLiquid ? 0.1 : 1;
   minFastestFee = isLiquid ? 0.1 : 1;
-  minHalfHourFee = isLiquid ? 0.1 : 0.5;
-  priorityFactor = isLiquid ? 0 : 0.5;
+  minHalfHourFee = isLiquid ? 0.1 : 1;
+  priorityFactor = isLiquid ? 0 : 0;
 
   public getRecommendedFee(): RecommendedFees {
     const pBlocks = projectedBlocks.getMempoolBlocks();
@@ -34,7 +34,7 @@ class FeeApi {
     const mPool = mempool.getMempoolInfo();
 
     // minimum non-zero minrelaytxfee / incrementalrelayfee is 1 sat/kvB = 0.001 sat/vB
-    const recommendations = this.calculateRecommendedFee(pBlocks, mPool, 0.001);
+    const recommendations = this.calculateRecommendedFee(pBlocks, mPool, 1);
     // enforce floor & offset for highest priority recommendations while <100% hashrate accepts sub-sat fees
     recommendations.fastestFee = Math.max(recommendations.fastestFee + this.priorityFactor, this.minFastestFee);
     recommendations.halfHourFee = Math.max(recommendations.halfHourFee + (this.priorityFactor / 2), this.minHalfHourFee);
